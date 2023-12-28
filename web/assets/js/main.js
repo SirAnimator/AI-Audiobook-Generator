@@ -79,10 +79,47 @@ function triggerDownload(blob, filename) {
 }
 
 
+// function generateAudiobook() {
+//     var text = document.getElementById('text-input').value;
+//     var apiKey = document.getElementById('api-key').value;
+//     var segments = splitTextIntoSegments(text, 4000);
+//     var audioBlobs = new Array(segments.length);
+//     var progressBar = document.getElementById('progressbar1');
+// 	document.getElementById('error-indicator').style.display = 'none';
+//     progressBar.max = segments.length;
+//     progressBar.value = 0;
+
+//     // Queue for segment processing
+//     var queue = segments.slice(); // Clone the segments array
+//     var rateLimitPerMinute = 50;
+//     var delayBetweenCalls = 60000 / rateLimitPerMinute; // Delay in ms
+
+//     function processQueue() {
+//         if (queue.length === 0) return; // Stop if the queue is empty
+
+//         var index = segments.length - queue.length;
+//         var segment = queue.shift(); // Get the next segment from the queue
+
+//         callOpenAIAPI(segment, apiKey, function (audioBlob) {
+//             audioBlobs[index] = audioBlob;
+//             progressBar.value = audioBlobs.filter(Boolean).length;
+
+//             if (audioBlobs.filter(Boolean).length === segments.length) {
+//                 // All segments are loaded, merge them!
+//                 mergeAudioBlobsAndDownload(audioBlobs);
+//             } else {
+//                 setTimeout(processQueue, delayBetweenCalls); // Process the next segment after a delay
+//             }
+//         });
+//     }
+
+//     // Start processing the queue
+//     processQueue();
+// }
+
 function generateAudiobook() {
     var text = document.getElementById('text-input').value;
-    var apiKey = document.getElementById('api-key').value;
-    var segments = splitTextIntoSegments(text, 4000);
+    var segments = splitTextIntoSegments(text, 256);
     var audioBlobs = new Array(segments.length);
     var progressBar = document.getElementById('progressbar1');
 	document.getElementById('error-indicator').style.display = 'none';
@@ -100,7 +137,7 @@ function generateAudiobook() {
         var index = segments.length - queue.length;
         var segment = queue.shift(); // Get the next segment from the queue
 
-        callOpenAIAPI(segment, apiKey, function (audioBlob) {
+        callLocalAPI(segment,function (audioBlob) {
             audioBlobs[index] = audioBlob;
             progressBar.value = audioBlobs.filter(Boolean).length;
 
@@ -121,8 +158,10 @@ function generateAudiobook() {
 function splitTextIntoSegments(text, maxLength) {
     var segments = [];
     var currentSegment = '';
+    
 
-    text.split('. ').forEach(sentence => {
+
+    text.split('.').forEach(sentence => {
         if (currentSegment.length + sentence.length > maxLength) {
             segments.push(currentSegment);
             currentSegment = '';
@@ -138,10 +177,38 @@ function splitTextIntoSegments(text, maxLength) {
     return segments;
 }
 
-function callOpenAIAPI(segment, apiKey, callback) {
+// function callOpenAIAPI(segment, apiKey, callback) {
+//     var xhr = new XMLHttpRequest();
+//     xhr.open("POST", "https://api.openai.com/v1/audio/speech", true);
+//     xhr.setRequestHeader("Authorization", "Bearer " + apiKey);
+//     xhr.setRequestHeader("Content-Type", "application/json");
+//     xhr.responseType = 'blob'; // Expect a binary response
+
+//     xhr.onload = function () {
+//         if (xhr.status === 200) {
+//             var audioBlob = xhr.response;
+//             callback(audioBlob);
+//         } else {
+//             console.error("Error calling OpenAI API: " + xhr.statusText);
+// 			document.getElementById('error-indicator').style.display = 'block';
+//         }
+//     };
+
+//     console.log("TTS running for: ");
+//     console.log(segment);
+
+//     var data = JSON.stringify({
+//         "model": "tts-1",
+//         "input": segment,
+//         "voice": document.getElementById("voice").value
+//     });
+//     xhr.send(data);
+// }
+
+
+function callLocalAPI(segment, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.openai.com/v1/audio/speech", true);
-    xhr.setRequestHeader("Authorization", "Bearer " + apiKey);
+    xhr.open("POST", "http://127.0.0.1:5000/api", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.responseType = 'blob'; // Expect a binary response
 
@@ -159,13 +226,12 @@ function callOpenAIAPI(segment, apiKey, callback) {
     console.log(segment);
 
     var data = JSON.stringify({
-        "model": "tts-1",
+        // "model": "tts-1",
         "input": segment,
-        "voice": document.getElementById("voice").value
+        // "voice": document.getElementById("voice").value
     });
     xhr.send(data);
 }
-
 
 document.addEventListener('DOMContentLoaded', function () {
     var textInput = document.getElementById('text-input');

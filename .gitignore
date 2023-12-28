@@ -1,0 +1,6 @@
+/api/env/
+/api/voices/voices_Training/
+
+*.pkf
+
+*.wav
