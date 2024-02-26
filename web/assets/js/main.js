@@ -208,7 +208,7 @@ function splitTextIntoSegments(text, maxLength) {
 
 function callLocalAPI(segment, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1:5000/api", true);
+    xhr.open("POST", "https://4b4qpf5nt7j-496ff2e9c6d22116-5000-colab.googleusercontent.com/api", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.responseType = 'blob'; // Expect a binary response
 
